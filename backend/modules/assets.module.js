@@ -14,43 +14,31 @@ function validateData({ asset_name, category, status }) {
 async function getSummary() {
   const pool = getPool()
 
-  // จำนวนครุภัณฑ์ทั้งหมด (นับตาม quantity ไม่ใช่จำนวน record)
-  const [[{ total }]] = await pool.query(
-    'SELECT COALESCE(SUM(quantity), 0) as total FROM assets'
-  )
+  // รัน query ทั้ง 7 พร้อมกัน (parallel) ลดเวลารอจาก serial เป็น max(latency)
+  const [
+    [totalRows],
+    [pendingRows],
+    [overdueRows],
+    [damagedRows],
+    [byCategory],
+    [byStatus],
+    [recentAssets],
+  ] = await Promise.all([
+    pool.query('SELECT COALESCE(SUM(quantity), 0) as total FROM assets'),
+    pool.query(`SELECT COUNT(*) as pendingBorrowCount FROM borrowing WHERE status = 'borrowed'`),
+    pool.query(`SELECT COUNT(*) as overdueCount FROM borrowing WHERE status = 'borrowed' AND expected_return_date < CURDATE()`),
+    pool.query(`SELECT COALESCE(SUM(quantity), 0) as damagedTotal FROM assets WHERE status IN ('ชำรุด', 'สูญหาย', 'จำหน่าย')`),
+    pool.query('SELECT category, SUM(quantity) as count FROM assets GROUP BY category ORDER BY count DESC'),
+    pool.query('SELECT status, SUM(quantity) as count FROM assets GROUP BY status ORDER BY count DESC'),
+    pool.query('SELECT id, asset_code, asset_name, category, status, created_at FROM assets ORDER BY created_at DESC LIMIT 5'),
+  ])
 
-  // จำนวนรายการที่กำลังยืมอยู่
-  const [[{ pendingBorrowCount }]] = await pool.query(
-    `SELECT COUNT(*) as pendingBorrowCount FROM borrowing WHERE status = 'borrowed'`
-  )
-
-  // จำนวนรายการที่เกินกำหนดคืน
-  const [[{ overdueCount }]] = await pool.query(
-    `SELECT COUNT(*) as overdueCount FROM borrowing WHERE status = 'borrowed' AND expected_return_date < CURDATE()`
-  )
-
-  // จำนวนชิ้นที่ชำรุด/สูญหาย/จำหน่าย
-  const [[{ damagedTotal }]] = await pool.query(
-    `SELECT COALESCE(SUM(quantity), 0) as damagedTotal FROM assets WHERE status IN ('ชำรุด', 'สูญหาย', 'จำหน่าย')`
-  )
-
+  const total              = totalRows[0].total
+  const pendingBorrowCount = pendingRows[0].pendingBorrowCount
+  const overdueCount       = overdueRows[0].overdueCount
+  const damagedTotal       = damagedRows[0].damagedTotal
   // ปกติ = ทั้งหมด - ยืม - เสียหาย
-  const normalCount = total - pendingBorrowCount - damagedTotal
-
-  // สรุปตามหมวดหมู่ (SUM quantity เพื่อนับจำนวนชิ้น)
-  const [byCategory] = await pool.query(
-    'SELECT category, SUM(quantity) as count FROM assets GROUP BY category ORDER BY count DESC'
-  )
-
-  // สรุปตามสถานะ (SUM quantity)
-  const [byStatus] = await pool.query(
-    'SELECT status, SUM(quantity) as count FROM assets GROUP BY status ORDER BY count DESC'
-  )
-
-  // ครุภัณฑ์ที่เพิ่มล่าสุด 5 รายการ
-  const [recentAssets] = await pool.query(
-    'SELECT id, asset_code, asset_name, category, status, created_at FROM assets ORDER BY created_at DESC LIMIT 5'
-  )
+  const normalCount        = total - pendingBorrowCount - damagedTotal
 
   return { total, normalCount, pendingBorrowCount, overdueCount, byCategory, byStatus, recentAssets }
 }

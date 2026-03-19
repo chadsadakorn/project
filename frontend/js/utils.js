@@ -89,6 +89,36 @@ function statusBadge(status) {
 }
 
 // ==============================
+// todayISO — วันที่วันนี้ในรูปแบบ YYYY-MM-DD
+// ==============================
+// ใช้กับ input[type=date] และเปรียบเทียบวันที่
+
+function todayISO() {
+  return new Date().toISOString().substring(0, 10)
+}
+
+// ==============================
+// filterMyRecords — กรองรายการของตัวเอง
+// ==============================
+// ใช้เทียบ user_id (Number) ป้องกัน "1" !== 1
+
+function filterMyRecords(records, userId) {
+  return records.filter(r => Number(r.user_id) === Number(userId))
+}
+
+// ==============================
+// getAvailableAssets — กรองครุภัณฑ์ที่พร้อมให้ยืม
+// ==============================
+// เงื่อนไข: มีจำนวนเหลือ และสถานะไม่ใช่ชำรุด/สูญหาย/จำหน่าย
+
+function getAvailableAssets(assets) {
+  return assets.filter(a =>
+    a.active_borrows < (a.quantity || 1) &&
+    a.status !== 'ชำรุด' && a.status !== 'สูญหาย' && a.status !== 'จำหน่าย'
+  )
+}
+
+// ==============================
 // handleApiError — จัดการ error จาก API
 // ==============================
 // ถ้า 401 → logout อัตโนมัติ

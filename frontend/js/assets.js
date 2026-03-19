@@ -300,7 +300,7 @@ async function openReturnByAsset(assetId) {
 
     // เตรียม form คืน
     document.getElementById('returnBorrowId').value      = record.id
-    document.getElementById('actualReturnDate').value    = new Date().toISOString().substring(0, 10)
+    document.getElementById('actualReturnDate').value    = todayISO()
     document.getElementById('returnNotes').value         = ''
     document.getElementById('returnModalMessage').innerHTML = ''
     returnModal.show()
@@ -339,17 +339,14 @@ document.getElementById('saveReturnBtn').addEventListener('click', async () => {
 // ==============================
 async function openBorrowModal(assetId = null) {
   // ตั้งค่า default ของ form
-  document.getElementById('borrowDate').value          = new Date().toISOString().substring(0, 10)
+  document.getElementById('borrowDate').value          = todayISO()
   document.getElementById('borrowerName').value        = ''
   document.getElementById('expectedReturnDate').value  = ''
   document.getElementById('borrowNotes').value         = ''
   document.getElementById('borrowModalMessage').innerHTML = ''
 
   // กรองเฉพาะครุภัณฑ์ที่ยังมีจำนวนเหลือให้ยืม
-  const available = allAssets.filter(a =>
-    a.active_borrows < (a.quantity || 1) &&
-    a.status !== 'ชำรุด' && a.status !== 'สูญหาย' && a.status !== 'จำหน่าย'
-  )
+  const available = getAvailableAssets(allAssets)
 
   // แสดงจำนวนเหลือในแต่ละ option
   document.getElementById('borrowAssetId').innerHTML =

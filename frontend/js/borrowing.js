@@ -21,18 +21,14 @@ async function loadBorrowing() {
     const { data } = await axios.get(url, { params: search ? { search } : {} })
 
     // user ทั่วไป → กรองเฉพาะรายการของตัวเอง
-    const records = user.role === 'admin'
-      ? data
-      : data.filter(r => Number(r.user_id) === Number(user.id))
-
+    const records = user.role === 'admin' ? data : filterMyRecords(data, user.id)
     renderTable(records)
 
-    // อัปเดต badge จำนวนที่ค้างคืน
-    const { data: pending } = await axios.get(`${BASE_URL}/borrowing/pending`)
-    // user → นับเฉพาะของตัวเอง
-    const myPending = user.role === 'admin'
-      ? pending
-      : pending.filter(r => Number(r.user_id) === Number(user.id))
+    // อัปเดต badge — ถ้าอยู่ tab pending ใช้ข้อมูลที่ดึงมาแล้ว ไม่ต้อง API call ซ้ำ
+    const pendingData = currentTab === 'pending'
+      ? data
+      : data.filter(r => r.status === 'borrowed')
+    const myPending = user.role === 'admin' ? pendingData : filterMyRecords(pendingData, user.id)
 
     const badge = document.getElementById('pendingBadge')
     badge.textContent = myPending.length
@@ -84,7 +80,7 @@ function renderTable(records) {
 // เปิด modal บันทึกการยืม
 // ==============================
 async function openBorrowModal() {
-  document.getElementById('borrowDate').value          = new Date().toISOString().substring(0, 10)
+  document.getElementById('borrowDate').value          = todayISO()
   document.getElementById('borrowerName').value        = ''
   document.getElementById('expectedReturnDate').value  = ''
   document.getElementById('borrowNotes').value         = ''
@@ -92,10 +88,7 @@ async function openBorrowModal() {
 
   // ดึงครุภัณฑ์ที่พร้อมให้ยืม (มีจำนวนเหลือ และไม่ชำรุด/สูญหาย/จำหน่าย)
   const { data } = await axios.get(`${BASE_URL}/assets`)
-  const available = data.filter(a =>
-    a.active_borrows < (a.quantity || 1) &&
-    a.status !== 'ชำรุด' && a.status !== 'สูญหาย' && a.status !== 'จำหน่าย'
-  )
+  const available = getAvailableAssets(data)
 
   const select = document.getElementById('borrowAssetId')
   select.innerHTML = '<option value="">-- เลือกครุภัณฑ์ --</option>'
@@ -112,7 +105,7 @@ async function openBorrowModal() {
 // ==============================
 function openReturnModal(id) {
   document.getElementById('returnBorrowId').value   = id
-  document.getElementById('actualReturnDate').value = new Date().toISOString().substring(0, 10)
+  document.getElementById('actualReturnDate').value = todayISO()
   document.getElementById('returnNotes').value      = ''
   document.getElementById('returnModalMessage').innerHTML = ''
   returnModal.show()

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - ระบบจัดการครุภัณฑ์</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="dashboard.html"><i class="bi bi-boxes me-2"></i>ระบบจัดการครุภัณฑ์</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="assets.html"><i class="bi bi-archive me-1"></i>ครุภัณฑ์</a></li>
+          <li class="nav-item"><a class="nav-link" href="borrowing.html"><i class="bi bi-arrow-left-right me-1"></i>การยืม-คืน</a></li>
+          <li class="nav-item"><a class="nav-link" href="report.html"><i class="bi bi-file-earmark-bar-graph me-1"></i>รายงาน</a></li>
+          <li class="nav-item admin-only d-none"><a class="nav-link" href="users.html"><i class="bi bi-people me-1"></i>จัดการผู้ใช้</a></li>
+        </ul>
+        <div class="navbar-nav">
+          <span class="nav-item navbar-text text-white me-3" id="navUsername"></span>
+          <a class="nav-link" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-1"></i>ออกจากระบบ</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-4 px-4">
+    <h4 class="mb-4 fw-bold"><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</h4>
+
+    <!-- ========== Admin Dashboard ========== -->
+    <div id="adminDashboard" class="d-none">
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="stat-card card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon bg-primary-soft rounded-3 p-3"><i class="bi bi-boxes fs-4 text-primary"></i></div>
+              <div><div class="text-muted small">ครุภัณฑ์ทั้งหมด</div><div class="fw-bold fs-4" id="totalAssets">-</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon bg-success-soft rounded-3 p-3"><i class="bi bi-check-circle fs-4 text-success"></i></div>
+              <div><div class="text-muted small">สถานะปกติ</div><div class="fw-bold fs-4" id="normalCount">-</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon bg-info-soft rounded-3 p-3"><i class="bi bi-arrow-left-right fs-4 text-info"></i></div>
+              <div><div class="text-muted small">กำลังยืม</div><div class="fw-bold fs-4" id="borrowedCount">-</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon bg-warning-soft rounded-3 p-3"><i class="bi bi-exclamation-triangle fs-4 text-warning"></i></div>
+              <div><div class="text-muted small">รายการค้างคืน</div><div class="fw-bold fs-4" id="pendingCount">-</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-transparent border-0 pb-0">
+              <h6 class="fw-bold mb-0"><i class="bi bi-tag me-2 text-primary"></i>จำนวนตามหมวดหมู่</h6>
+            </div>
+            <div class="card-body"><div id="categoryList"><div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm"></div></div></div></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-transparent border-0 pb-0">
+              <h6 class="fw-bold mb-0"><i class="bi bi-pie-chart me-2 text-primary"></i>จำนวนตามสถานะ</h6>
+            </div>
+            <div class="card-body"><div id="statusList"><div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm"></div></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- รายการยืมปัจจุบัน -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0"><i class="bi bi-people me-2 text-warning"></i>รายการยืมปัจจุบัน</h6>
+          <a href="borrowing.html" class="btn btn-sm btn-outline-warning">ดูทั้งหมด</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>รหัสครุภัณฑ์</th>
+                  <th>ชื่อครุภัณฑ์</th>
+                  <th>ผู้ยืม</th>
+                  <th>วันที่ยืม</th>
+                  <th>กำหนดคืน</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="currentBorrowingBody">
+                <tr><td colspan="6" class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ครุภัณฑ์ล่าสุด -->
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>ครุภัณฑ์ล่าสุด</h6>
+          <a href="assets.html" class="btn btn-sm btn-outline-primary">ดูทั้งหมด</a>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr><th>รหัสครุภัณฑ์</th><th>ชื่อครุภัณฑ์</th><th>หมวดหมู่</th><th>สถานะ</th><th>วันที่เพิ่ม</th></tr>
+              </thead>
+              <tbody id="recentAssetsBody">
+                <tr><td colspan="5" class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== User Dashboard ========== -->
+    <div id="userDashboard" class="d-none">
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4">
+          <div class="stat-card card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon bg-info-soft rounded-3 p-3"><i class="bi bi-arrow-right-circle fs-4 text-info"></i></div>
+              <div><div class="text-muted small">กำลังยืมอยู่</div><div class="fw-bold fs-4" id="myBorrowing">-</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4">
+          <div class="stat-card card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon bg-danger-soft rounded-3 p-3"><i class="bi bi-exclamation-triangle fs-4 text-danger"></i></div>
+              <div><div class="text-muted small">เกินกำหนดคืน</div><div class="fw-bold fs-4" id="myOverdue">-</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4">
+          <div class="stat-card card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+              <div class="stat-icon bg-success-soft rounded-3 p-3"><i class="bi bi-check-circle fs-4 text-success"></i></div>
+              <div><div class="text-muted small">คืนแล้วทั้งหมด</div><div class="fw-bold fs-4" id="myReturned">-</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0"><i class="bi bi-list-ul me-2 text-primary"></i>รายการยืมของฉัน</h6>
+          <a href="borrowing.html" class="btn btn-sm btn-outline-primary">ดูทั้งหมด</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr><th>รหัสครุภัณฑ์</th><th>ชื่อครุภัณฑ์</th><th>วันที่ยืม</th><th>กำหนดคืน</th><th>สถานะ</th></tr>
+              </thead>
+              <tbody id="myBorrowingBody">
+                <tr><td colspan="5" class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

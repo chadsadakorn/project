@@ -1,0 +1,356 @@
+/* ==================== Base & Font ==================== */
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  font-size: 15px;
+  background-color: #f4f6fb;
+  color: #2d3748;
+  min-height: 100vh;
+}
+
+/* ==================== Navbar ==================== */
+.navbar-custom {
+  background: linear-gradient(135deg, #1a56db 0%, #1e40af 100%);
+  box-shadow: 0 2px 12px rgba(26, 86, 219, 0.25);
+  padding: 0.6rem 1.5rem;
+}
+
+.navbar-custom .navbar-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.navbar-custom .nav-link {
+  font-weight: 500;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ==================== Auth Pages ==================== */
+.auth-body {
+  background: linear-gradient(135deg, #1a56db 0%, #1e40af 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.auth-wrapper {
+  width: 100%;
+  max-width: 420px;
+  padding: 1rem;
+}
+
+.auth-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.auth-header {
+  background: linear-gradient(135deg, #1a56db 0%, #1e40af 100%);
+  padding: 2rem 1.5rem 1.5rem;
+}
+
+.btn-login {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* ==================== Cards ==================== */
+.card {
+  border-radius: 12px;
+  border: none;
+}
+
+.card-header {
+  border-radius: 12px 12px 0 0 !important;
+  padding: 1rem 1.25rem;
+}
+
+/* ==================== Stat Cards (Dashboard) ==================== */
+.stat-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bg-primary-soft { background-color: #dbeafe; }
+.bg-success-soft { background-color: #dcfce7; }
+.bg-info-soft    { background-color: #cffafe; }
+.bg-warning-soft { background-color: #fef9c3; }
+.bg-danger-soft  { background-color: #fee2e2; }
+
+/* ==================== Status Badges ==================== */
+.badge {
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.35em 0.75em;
+  border-radius: 20px;
+}
+
+.badge-normal   { background-color: #16a34a; color: #fff; }
+.badge-borrowed { background-color: #2563eb; color: #fff; }
+.badge-damaged  { background-color: #ea580c; color: #fff; }
+.badge-lost     { background-color: #dc2626; color: #fff; }
+.badge-disposed { background-color: #6b7280; color: #fff; }
+
+/* ==================== Tables ==================== */
+.table {
+  font-size: 0.9rem;
+}
+
+.table th {
+  font-weight: 600;
+  color: #4b5563;
+  white-space: nowrap;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.table td {
+  vertical-align: middle;
+  border-color: #f3f4f6;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f0f7ff;
+}
+
+.table-responsive {
+  border-radius: 0 0 12px 12px;
+}
+
+/* ==================== Buttons ==================== */
+.btn {
+  font-weight: 500;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.btn-xs {
+  padding: 0.15rem 0.45rem;
+  font-size: 0.78rem;
+  border-radius: 6px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1a56db, #1e40af);
+  border: none;
+  box-shadow: 0 2px 8px rgba(26, 86, 219, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1e40af, #1a3a8f);
+  box-shadow: 0 4px 12px rgba(26, 86, 219, 0.4);
+}
+
+/* ==================== Forms ==================== */
+.form-control, .form-select {
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.85rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #1a56db;
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.15);
+}
+
+.input-group-text {
+  border-radius: 8px 0 0 8px;
+  background-color: #f9fafb;
+  border: 1.5px solid #d1d5db;
+  border-right: none;
+  color: #6b7280;
+}
+
+.input-group .form-control {
+  border-radius: 0 8px 8px 0;
+}
+
+.form-label {
+  font-size: 0.88rem;
+  color: #374151;
+  margin-bottom: 0.3rem;
+}
+
+/* ==================== Modals ==================== */
+.modal-content {
+  border: none;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 1rem 1.25rem;
+}
+
+.modal-footer {
+  border-top: 1px solid #f3f4f6;
+  padding: 1rem 1.25rem;
+}
+
+/* ==================== Nav Tabs ==================== */
+.nav-tabs {
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.nav-tabs .nav-link {
+  font-weight: 500;
+  color: #6b7280;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  padding: 0.6rem 1.2rem;
+  margin-bottom: -2px;
+  transition: color 0.2s;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #1a56db;
+}
+
+.nav-tabs .nav-link.active {
+  color: #1a56db;
+  font-weight: 600;
+  border-bottom-color: #1a56db;
+  background: none;
+}
+
+/* ==================== Avatar ==================== */
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ==================== Progress Bars ==================== */
+.progress {
+  border-radius: 10px;
+  background-color: #e5e7eb;
+}
+
+.progress-bar {
+  border-radius: 10px;
+  background: linear-gradient(90deg, #1a56db, #60a5fa);
+}
+
+/* ==================== Alerts ==================== */
+.alert {
+  border-radius: 10px;
+  font-size: 0.9rem;
+  border: none;
+}
+
+.alert-success { background-color: #dcfce7; color: #166534; }
+.alert-danger  { background-color: #fee2e2; color: #991b1b; }
+.alert-warning { background-color: #fef9c3; color: #854d0e; }
+.alert-info    { background-color: #cffafe; color: #155e75; }
+
+/* ==================== Misc ==================== */
+code {
+  background-color: #f3f4f6;
+  padding: 0.15em 0.5em;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #1a56db;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+/* ==================== Asset Detail Modal ==================== */
+.detail-info {
+  border-top: 1px solid #f3f4f6;
+}
+
+.detail-row {
+  display: flex;
+  align-items: baseline;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.9rem;
+}
+
+.detail-label {
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+/* ==================== Asset Cards ==================== */
+.asset-placeholder {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+  border-radius: 12px 12px 0 0;
+}
+
+.card .card-img-top {
+  border-radius: 12px 12px 0 0;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .table th, .table td {
+    font-size: 0.82rem;
+    padding: 0.5rem 0.4rem;
+  }
+
+  h4 {
+    font-size: 1.1rem;
+  }
+}

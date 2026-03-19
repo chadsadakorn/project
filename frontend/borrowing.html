@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>การยืม-คืน - ระบบจัดการครุภัณฑ์</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="dashboard.html"><i class="bi bi-boxes me-2"></i>ระบบจัดการครุภัณฑ์</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="dashboard.html"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="assets.html"><i class="bi bi-archive me-1"></i>ครุภัณฑ์</a></li>
+          <li class="nav-item"><a class="nav-link active" href="borrowing.html"><i class="bi bi-arrow-left-right me-1"></i>การยืม-คืน</a></li>
+          <li class="nav-item"><a class="nav-link" href="report.html"><i class="bi bi-file-earmark-bar-graph me-1"></i>รายงาน</a></li>
+          <li class="nav-item admin-only d-none"><a class="nav-link" href="users.html"><i class="bi bi-people me-1"></i>จัดการผู้ใช้</a></li>
+        </ul>
+        <div class="navbar-nav">
+          <span class="nav-item navbar-text text-white me-3" id="navUsername"></span>
+          <a class="nav-link" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-1"></i>ออกจากระบบ</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="mb-0 fw-bold"><i class="bi bi-arrow-left-right me-2 text-primary"></i>การยืม-คืนครุภัณฑ์</h4>
+      <button class="btn btn-primary" id="addBorrowBtn">
+        <i class="bi bi-plus-lg me-2"></i>บันทึกการยืม
+      </button>
+    </div>
+
+    <div id="message"></div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="borrowTabs">
+      <li class="nav-item">
+        <button class="nav-link active" id="tabAll" data-tab="all">
+          <i class="bi bi-list-ul me-1"></i>รายการทั้งหมด
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="tabPending" data-tab="pending">
+          <i class="bi bi-hourglass-split me-1"></i>รายการที่ยังไม่คืน
+          <span class="badge bg-danger ms-1" id="pendingBadge" style="display:none"></span>
+        </button>
+      </li>
+    </ul>
+
+    <!-- Search -->
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-body py-3">
+        <div class="input-group" style="max-width:400px">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="searchInput" placeholder="ค้นหาชื่อผู้ยืม, รหัสครุภัณฑ์..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>รหัสครุภัณฑ์</th>
+                <th>ชื่อครุภัณฑ์</th>
+                <th>ผู้ยืม</th>
+                <th>วันที่ยืม</th>
+                <th>กำหนดคืน</th>
+                <th>วันที่คืน</th>
+                <th>สถานะ</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="borrowingBody">
+              <tr><td colspan="8" class="text-center py-4"><div class="spinner-border spinner-border-sm me-2"></div>กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Borrow Modal -->
+  <div class="modal fade" id="borrowModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="bi bi-arrow-right-circle me-2"></i>บันทึกการยืมครุภัณฑ์</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="borrowModalMessage"></div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">ครุภัณฑ์ <span class="text-danger">*</span></label>
+            <select class="form-select" id="borrowAssetId">
+              <option value="">-- เลือกครุภัณฑ์ --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">ชื่อผู้ยืม <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="borrowerName" placeholder="กรอกชื่อผู้ยืม" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">วันที่ยืม <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="borrowDate" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">วันที่คืน (กำหนด) <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="expectedReturnDate" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">หมายเหตุ</label>
+            <textarea class="form-control" id="borrowNotes" rows="2" placeholder="หมายเหตุเพิ่มเติม"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-primary" id="saveBorrowBtn">
+            <i class="bi bi-save me-2"></i>บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Return Modal -->
+  <div class="modal fade" id="returnModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title"><i class="bi bi-arrow-left-circle me-2"></i>บันทึกการคืนครุภัณฑ์</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="returnModalMessage"></div>
+          <input type="hidden" id="returnBorrowId" />
+          <div class="mb-3">
+            <label class="form-label fw-medium">วันที่คืนจริง <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="actualReturnDate" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">หมายเหตุ</label>
+            <textarea class="form-control" id="returnNotes" rows="2" placeholder="หมายเหตุเพิ่มเติม"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-success" id="saveReturnBtn">
+            <i class="bi bi-check-lg me-2"></i>ยืนยันการคืน
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/borrowing.js"></script>
+</body>
+</html>

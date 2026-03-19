@@ -1,10 +1,6 @@
-// dashboard.js — หน้า Dashboard แสดงภาพรวมระบบ
-// admin → เห็นสถิติรวม / user → เห็นเฉพาะรายการยืมของตัวเอง
-
-const user = initPage()  // ตรวจสอบ login และดึงข้อมูล user
+const user = initPage()
 
 window.onload = async () => {
-  // แสดง section ที่เหมาะสมตาม role
   if (user.role === 'admin') {
     document.getElementById('adminDashboard').classList.remove('d-none')
     loadAdminDashboard()
@@ -14,25 +10,20 @@ window.onload = async () => {
   }
 }
 
-// ==============================
-// Dashboard สำหรับ Admin
-// ==============================
 async function loadAdminDashboard() {
   try {
-    // ดึงสรุปสถิติและรายการยืมพร้อมกัน (parallel)
+    // ดึงสรุปสถิติและรายการยืมพร้อมกัน
     const [{ data }, { data: pendingList }] = await Promise.all([
       axios.get(`${BASE_URL}/assets/stats/summary`),
       axios.get(`${BASE_URL}/borrowing/pending`),
     ])
     const { total, normalCount, pendingBorrowCount, overdueCount, byCategory, byStatus, recentAssets } = data
 
-    // อัปเดต stat cards
-    document.getElementById('totalAssets').textContent   = total               // ทั้งหมด
-    document.getElementById('normalCount').textContent   = normalCount          // ปกติ
-    document.getElementById('borrowedCount').textContent = pendingBorrowCount   // กำลังยืม
-    document.getElementById('pendingCount').textContent  = overdueCount         // เกินกำหนด
+    document.getElementById('totalAssets').textContent   = total
+    document.getElementById('normalCount').textContent   = normalCount
+    document.getElementById('borrowedCount').textContent = pendingBorrowCount
+    document.getElementById('pendingCount').textContent  = overdueCount
 
-    // แสดงสรุปตามหมวดหมู่ พร้อม progress bar
     document.getElementById('categoryList').innerHTML = byCategory.length === 0
       ? '<p class="text-muted text-center">ยังไม่มีข้อมูล</p>'
       : byCategory.map(c => `
@@ -44,7 +35,6 @@ async function loadAdminDashboard() {
             <div class="progress-bar" style="width:${Math.round((c.count / total) * 100)}%"></div>
           </div>`).join('')
 
-    // แสดงสรุปตามสถานะ
     document.getElementById('statusList').innerHTML = byStatus.length === 0
       ? '<p class="text-muted text-center">ยังไม่มีข้อมูล</p>'
       : byStatus.map(s => `
@@ -53,7 +43,6 @@ async function loadAdminDashboard() {
             <span class="fw-medium">${s.count} รายการ</span>
           </div>`).join('')
 
-    // แสดงตารางรายการยืมปัจจุบัน (ใครยืมอะไรอยู่)
     const today = todayISO()
     document.getElementById('currentBorrowingBody').innerHTML = pendingList.length === 0
       ? `<tr><td colspan="6" class="text-center text-muted py-3">ไม่มีรายการยืมขณะนี้</td></tr>`
@@ -77,7 +66,6 @@ async function loadAdminDashboard() {
             </tr>`
         }).join('')
 
-    // แสดงตารางครุภัณฑ์ที่เพิ่มล่าสุด
     document.getElementById('recentAssetsBody').innerHTML = recentAssets.length === 0
       ? '<tr><td colspan="5" class="text-center text-muted py-3">ยังไม่มีข้อมูล</td></tr>'
       : recentAssets.map(a => `
@@ -94,39 +82,26 @@ async function loadAdminDashboard() {
   }
 }
 
-// ==============================
-// Dashboard สำหรับ User ทั่วไป
-// ==============================
 async function loadUserDashboard() {
   try {
-    // ดึงรายการยืมทั้งหมด แล้วกรองเฉพาะของตัวเอง
-    const { data } = await axios.get(`${BASE_URL}/borrowing`)
-    const myRecords = filterMyRecords(data, user.id)
+    const { data }    = await axios.get(`${BASE_URL}/borrowing`)
+    const myRecords   = filterMyRecords(data, user.id)
+    const today       = todayISO()
+    const borrowing   = myRecords.filter(r => r.status === 'borrowed')
+    const overdue     = borrowing.filter(r => r.expected_return_date < today)
+    const returned    = myRecords.filter(r => r.status === 'returned')
 
-    const today = todayISO()
-
-    // แยกประเภทรายการ
-    const borrowing = myRecords.filter(r => r.status === 'borrowed')
-    const overdue   = borrowing.filter(r => r.expected_return_date < today)  // เกินกำหนดคืน
-    const returned  = myRecords.filter(r => r.status === 'returned')
-
-    // อัปเดต stat cards
     document.getElementById('myBorrowing').textContent = borrowing.length
     document.getElementById('myOverdue').textContent   = overdue.length
     document.getElementById('myReturned').textContent  = returned.length
 
-    // แสดงตาราง 10 รายการล่าสุด
-    const recent = myRecords.slice(0, 10)
-    document.getElementById('myBorrowingBody').innerHTML = recent.length === 0
+    document.getElementById('myBorrowingBody').innerHTML = myRecords.slice(0, 10).length === 0
       ? '<tr><td colspan="5" class="text-center text-muted py-3">ยังไม่มีรายการยืม</td></tr>'
-      : recent.map(r => {
-          const isOverdue = r.status === 'borrowed' && r.expected_return_date < today  // ใช้ today จาก todayISO()
-
-          // badge แสดงสถานะ พร้อมแจ้งเตือนถ้าเกินกำหนด
+      : myRecords.slice(0, 10).map(r => {
+          const isOverdue = r.status === 'borrowed' && r.expected_return_date < today
           const badge = r.status === 'returned'
             ? `<span class="badge badge-normal">คืนแล้ว</span>`
             : `<span class="badge badge-borrowed">ยืม${isOverdue ? ' <span class="badge bg-danger ms-1">เกินกำหนด</span>' : ''}</span>`
-
           return `
             <tr class="${isOverdue ? 'table-warning' : ''}">
               <td><code>${r.asset_code}</code></td>

@@ -1,16 +1,9 @@
-// borrowing.js — หน้าการยืม-คืนครุภัณฑ์
-// admin → เห็นรายการทั้งหมด
-// user  → เห็นเฉพาะรายการของตัวเอง
-
 const user = initPage()
 
 const borrowModal = new bootstrap.Modal(document.getElementById('borrowModal'))
 const returnModal = new bootstrap.Modal(document.getElementById('returnModal'))
 let currentTab = 'all'
 
-// ==============================
-// โหลดรายการยืม
-// ==============================
 async function loadBorrowing() {
   const search = document.getElementById('searchInput').value.trim()
   try {
@@ -19,17 +12,12 @@ async function loadBorrowing() {
       : `${BASE_URL}/borrowing`
 
     const { data } = await axios.get(url, { params: search ? { search } : {} })
-
-    // user ทั่วไป → กรองเฉพาะรายการของตัวเอง
-    const records = user.role === 'admin' ? data : filterMyRecords(data, user.id)
+    const records  = user.role === 'admin' ? data : filterMyRecords(data, user.id)
     renderTable(records)
 
-    // อัปเดต badge — ถ้าอยู่ tab pending ใช้ข้อมูลที่ดึงมาแล้ว ไม่ต้อง API call ซ้ำ
-    const pendingData = currentTab === 'pending'
-      ? data
-      : data.filter(r => r.status === 'borrowed')
-    const myPending = user.role === 'admin' ? pendingData : filterMyRecords(pendingData, user.id)
-
+    // badge — ใช้ข้อมูลที่ดึงมาแล้ว ไม่ต้อง API call ซ้ำ
+    const pendingData = currentTab === 'pending' ? data : data.filter(r => r.status === 'borrowed')
+    const myPending   = user.role === 'admin' ? pendingData : filterMyRecords(pendingData, user.id)
     const badge = document.getElementById('pendingBadge')
     badge.textContent = myPending.length
     badge.style.display = myPending.length > 0 ? 'inline' : 'none'
@@ -39,20 +27,16 @@ async function loadBorrowing() {
   }
 }
 
-// ==============================
-// แสดงตาราง
-// ==============================
 function renderTable(records) {
   const tbody = document.getElementById('borrowingBody')
   tbody.innerHTML = records.length === 0
     ? `<tr><td colspan="8" class="text-center text-muted py-4"><i class="bi bi-inbox fs-3 d-block mb-2"></i>ไม่พบรายการ</td></tr>`
     : records.map(r => {
-        const overdue  = r.status === 'borrowed' && new Date(r.expected_return_date) < new Date()
-        const badge    = r.status === 'borrowed'
+        const overdue   = r.status === 'borrowed' && new Date(r.expected_return_date) < new Date()
+        const badge     = r.status === 'borrowed'
           ? `<span class="badge badge-borrowed">ยืม${overdue ? ' (เกินกำหนด)' : ''}</span>`
           : `<span class="badge badge-normal">คืนแล้ว</span>`
-
-        // แสดงปุ่มคืนเฉพาะ admin หรือเจ้าของรายการ
+        // admin หรือเจ้าของเท่านั้นที่คืนได้
         const canReturn = r.status === 'borrowed' &&
           (user.role === 'admin' || Number(r.user_id) === Number(user.id))
 
@@ -76,22 +60,18 @@ function renderTable(records) {
       }).join('')
 }
 
-// ==============================
-// เปิด modal บันทึกการยืม
-// ==============================
 async function openBorrowModal() {
-  document.getElementById('borrowDate').value          = todayISO()
-  document.getElementById('borrowerName').value        = ''
-  document.getElementById('expectedReturnDate').value  = ''
-  document.getElementById('borrowNotes').value         = ''
+  document.getElementById('borrowDate').value             = todayISO()
+  document.getElementById('borrowerName').value           = ''
+  document.getElementById('expectedReturnDate').value     = ''
+  document.getElementById('borrowNotes').value            = ''
   document.getElementById('borrowModalMessage').innerHTML = ''
 
-  // ดึงครุภัณฑ์ที่พร้อมให้ยืม (มีจำนวนเหลือ และไม่ชำรุด/สูญหาย/จำหน่าย)
   const { data } = await axios.get(`${BASE_URL}/assets`)
   const available = getAvailableAssets(data)
 
-  const select = document.getElementById('borrowAssetId')
-  select.innerHTML = '<option value="">-- เลือกครุภัณฑ์ --</option>'
+  document.getElementById('borrowAssetId').innerHTML =
+    '<option value="">-- เลือกครุภัณฑ์ --</option>'
     + available.map(a => {
         const remaining = (a.quantity || 1) - (a.active_borrows || 0)
         return `<option value="${a.id}">${a.asset_code} — ${a.asset_name} (เหลือ ${remaining}/${a.quantity || 1})</option>`
@@ -100,20 +80,14 @@ async function openBorrowModal() {
   borrowModal.show()
 }
 
-// ==============================
-// เปิด modal บันทึกการคืน
-// ==============================
 function openReturnModal(id) {
-  document.getElementById('returnBorrowId').value   = id
-  document.getElementById('actualReturnDate').value = todayISO()
-  document.getElementById('returnNotes').value      = ''
+  document.getElementById('returnBorrowId').value         = id
+  document.getElementById('actualReturnDate').value       = todayISO()
+  document.getElementById('returnNotes').value            = ''
   document.getElementById('returnModalMessage').innerHTML = ''
   returnModal.show()
 }
 
-// ==============================
-// บันทึกการยืม
-// ==============================
 document.getElementById('saveBorrowBtn').addEventListener('click', async () => {
   const asset_id             = document.getElementById('borrowAssetId').value
   const borrower_name        = document.getElementById('borrowerName').value.trim()
@@ -138,9 +112,6 @@ document.getElementById('saveBorrowBtn').addEventListener('click', async () => {
   }
 })
 
-// ==============================
-// บันทึกการคืน
-// ==============================
 document.getElementById('saveReturnBtn').addEventListener('click', async () => {
   const id               = document.getElementById('returnBorrowId').value
   const actual_return_date = document.getElementById('actualReturnDate').value
@@ -163,9 +134,6 @@ document.getElementById('saveReturnBtn').addEventListener('click', async () => {
   }
 })
 
-// ==============================
-// Tabs
-// ==============================
 document.getElementById('tabAll').addEventListener('click', () => {
   currentTab = 'all'
   document.getElementById('tabAll').classList.add('active')
@@ -182,7 +150,6 @@ document.getElementById('tabPending').addEventListener('click', () => {
 
 document.getElementById('addBorrowBtn')?.addEventListener('click', openBorrowModal)
 
-// Debounce search
 let searchTimer
 document.getElementById('searchInput').addEventListener('input', () => {
   clearTimeout(searchTimer)

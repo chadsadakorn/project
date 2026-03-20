@@ -24,7 +24,7 @@ async function getSummary() {
   ] = await Promise.all([
     pool.query('SELECT COALESCE(SUM(quantity), 0) as total FROM assets'),
     pool.query(`SELECT COUNT(*) as pendingBorrowCount FROM borrowing WHERE status = 'borrowed'`),
-    pool.query(`SELECT COUNT(*) as overdueCount FROM borrowing WHERE status = 'borrowed' AND expected_return_date < CURDATE()`),
+    pool.query(`SELECT COUNT(*) as overdueCount FROM borrowing WHERE status = 'borrowed' AND expected_return_date <= CURDATE()`),
     pool.query(`SELECT COALESCE(SUM(quantity), 0) as damagedTotal FROM assets WHERE status IN ('ชำรุด', 'สูญหาย', 'จำหน่าย')`),
     pool.query('SELECT category, SUM(quantity) as count FROM assets GROUP BY category ORDER BY count DESC'),
     pool.query('SELECT status, SUM(quantity) as count FROM assets GROUP BY status ORDER BY count DESC'),

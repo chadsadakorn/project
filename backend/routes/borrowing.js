@@ -5,7 +5,7 @@ const borrowingController = require('../controllers/borrowing.controller')
 // ดึงรายการที่ยังไม่คืน 
 router.get('/pending', borrowingController.getPending)
 
-// ดึงรายการยืมทั้งหมด รองรับ query: ?status=&search=
+// ดึงรายการยืมทั้งหมด 
 router.get('/', borrowingController.getAll)
 
 // สร้างรายการยืมใหม่ 

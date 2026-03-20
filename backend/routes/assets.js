@@ -15,7 +15,7 @@ router.get('/', assetsController.getAll)
 // ดึงครุภัณฑ์ตาม 
 router.get('/:id', assetsController.getOne)
 
-// เพิ่มครุภัณฑ์ใหม่ (เฉพาะ admin)
+// เพิ่มครุภัณฑ์ใหม่ 
 router.post('/', isAdmin, assetsController.create)
 
 // แก้ไขครุภัณฑ์ 

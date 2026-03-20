@@ -70,7 +70,7 @@ async function create({ asset_id, user_id, borrower_name, borrow_date, expected_
     [asset_id, user_id || null, borrower_name.trim(), borrow_date, expected_return_date, notes || null]
   )
 
-  // ยืมครบทุกชิ้น → status 'ยืม' | ยังมีเหลือ → 'ปกติ'
+  // status 'ยืม' | ยังมีเหลือ → 'ปกติ'
   await pool.query(
     `UPDATE assets SET status = ? WHERE id = ?`,
     [activeCount + 1 >= quantity ? 'ยืม' : 'ปกติ', asset_id]
@@ -102,7 +102,7 @@ async function returnAsset(id, { actual_return_date, notes } = {}) {
     [record.asset_id]
   )
 
-  // remainingCount=0 → คืนหมดแล้ว ตั้งเป็นปกติเลย | ยังมีอยู่ → ตั้งปกติเฉพาะถ้าเคยถูก mark ว่า 'ยืม'
+  // คืนหมดแล้ว ตั้งเป็นปกติเลย | ยังมีอยู่ → ตั้งปกติเฉพาะถ้าเคยถูก mark ว่า 'ยืม'
   const extraCondition = remainingCount === 0 ? '' : "AND status = 'ยืม'"
   await pool.query(`UPDATE assets SET status = 'ปกติ' WHERE id = ? ${extraCondition}`, [record.asset_id])
 
@@ -110,75 +110,4 @@ async function returnAsset(id, { actual_return_date, notes } = {}) {
   return rows[0]
 }
 
-async function getReport({ dateFrom, dateTo, status } = {}) {
-  const pool = getPool()
-  let query  = BORROW_SELECT + ' WHERE 1=1'
-  const params = []
-
-  if (dateFrom) { query += ' AND b.borrow_date >= ?'; params.push(dateFrom) }
-  if (dateTo)   { query += ' AND b.borrow_date <= ?'; params.push(dateTo) }
-  if (status)   { query += ' AND b.status = ?';       params.push(status) }
-
-  query += ' ORDER BY b.borrow_date DESC'
-  const [rows] = await pool.query(query, params)
-
-  const today = new Date().toISOString().substring(0, 10)
-  const summary = {
-    total:    rows.length,
-    returned: rows.filter(r => r.status === 'returned').length,
-    pending:  rows.filter(r => r.status === 'borrowed').length,
-    overdue:  rows.filter(r => r.status === 'borrowed' && r.expected_return_date < today).length,
-  }
-
-  return { summary, records: rows }
-}
-
-async function getAnnualReport(year) {
-  const pool  = getPool()
-  const today = new Date().toISOString().substring(0, 10)
-
-  // ยิง 6 query พร้อมกัน
-  const [
-    [[summary]],
-    [monthly],
-    [topAssets],
-    [byCategory],
-    [[{ newAssets }]],
-    [records],
-  ] = await Promise.all([
-    pool.query(
-      `SELECT COUNT(*) AS total, SUM(status = 'returned') AS returned,
-              SUM(status = 'borrowed') AS pending,
-              SUM(status = 'borrowed' AND expected_return_date < ?) AS overdue
-       FROM borrowing WHERE YEAR(borrow_date) = ?`,
-      [today, year]
-    ),
-    pool.query(
-      `SELECT MONTH(borrow_date) AS month, COUNT(*) AS total,
-              SUM(status = 'returned') AS returned, SUM(status = 'borrowed') AS pending
-       FROM borrowing WHERE YEAR(borrow_date) = ?
-       GROUP BY MONTH(borrow_date) ORDER BY month`,
-      [year]
-    ),
-    pool.query(
-      `SELECT a.asset_code, a.asset_name, a.category, COUNT(*) AS borrow_count
-       FROM borrowing b JOIN assets a ON b.asset_id = a.id
-       WHERE YEAR(b.borrow_date) = ?
-       GROUP BY b.asset_id ORDER BY borrow_count DESC LIMIT 5`,
-      [year]
-    ),
-    pool.query(
-      `SELECT a.category, COUNT(*) AS count
-       FROM borrowing b JOIN assets a ON b.asset_id = a.id
-       WHERE YEAR(b.borrow_date) = ?
-       GROUP BY a.category ORDER BY count DESC`,
-      [year]
-    ),
-    pool.query(`SELECT COUNT(*) AS newAssets FROM assets WHERE YEAR(created_at) = ?`, [year]),
-    pool.query(BORROW_SELECT + `WHERE YEAR(b.borrow_date) = ? ORDER BY b.borrow_date ASC`, [year]),
-  ])
-
-  return { year, summary, monthly, topAssets, byCategory, newAssets, records }
-}
-
-module.exports = { validateData, getAll, getPending, create, returnAsset, getReport, getAnnualReport }
+module.exports = { validateData, getAll, getPending, create, returnAsset }

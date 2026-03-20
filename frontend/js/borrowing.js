@@ -1,9 +1,11 @@
+// borrowing.js — หน้ายืม-คืน 
 const user = initPage()
 
 const borrowModal = new bootstrap.Modal(document.getElementById('borrowModal'))
 const returnModal = new bootstrap.Modal(document.getElementById('returnModal'))
 let currentTab = 'all'
 
+// โหลดรายการยืมตาม 
 async function loadBorrowing() {
   const search = document.getElementById('searchInput').value.trim()
   try {
@@ -15,7 +17,7 @@ async function loadBorrowing() {
     const records  = user.role === 'admin' ? data : filterMyRecords(data, user.id)
     renderTable(records)
 
-    // badge — ใช้ข้อมูลที่ดึงมาแล้ว ไม่ต้อง API call ซ้ำ
+    // ใช้ข้อมูลที่ดึงมาแล้ว 
     const pendingData = currentTab === 'pending' ? data : data.filter(r => r.status === 'borrowed')
     const myPending   = user.role === 'admin' ? pendingData : filterMyRecords(pendingData, user.id)
     const badge = document.getElementById('pendingBadge')
@@ -27,6 +29,7 @@ async function loadBorrowing() {
   }
 }
 
+// แสดงตารางรายการยืม 
 function renderTable(records) {
   const tbody = document.getElementById('borrowingBody')
   tbody.innerHTML = records.length === 0
@@ -36,7 +39,6 @@ function renderTable(records) {
         const badge     = r.status === 'borrowed'
           ? `<span class="badge badge-borrowed">ยืม${overdue ? ' (เกินกำหนด)' : ''}</span>`
           : `<span class="badge badge-normal">คืนแล้ว</span>`
-        // admin หรือเจ้าของเท่านั้นที่คืนได้
         const canReturn = r.status === 'borrowed' &&
           (user.role === 'admin' || Number(r.user_id) === Number(user.id))
 
@@ -60,6 +62,7 @@ function renderTable(records) {
       }).join('')
 }
 
+// เปิด popup ยืม พร้อมโหลดรายการครุภัณฑ์ที่ยืมได้
 async function openBorrowModal() {
   document.getElementById('borrowDate').value             = todayISO()
   document.getElementById('borrowerName').value           = ''
@@ -80,6 +83,7 @@ async function openBorrowModal() {
   borrowModal.show()
 }
 
+// เปิด popup คืน 
 function openReturnModal(id) {
   document.getElementById('returnBorrowId').value         = id
   document.getElementById('actualReturnDate').value       = todayISO()
@@ -88,6 +92,7 @@ function openReturnModal(id) {
   returnModal.show()
 }
 
+// บันทึกการยืม 
 document.getElementById('saveBorrowBtn').addEventListener('click', async () => {
   const asset_id             = document.getElementById('borrowAssetId').value
   const borrower_name        = document.getElementById('borrowerName').value.trim()
@@ -112,6 +117,7 @@ document.getElementById('saveBorrowBtn').addEventListener('click', async () => {
   }
 })
 
+// บันทึกการคืน 
 document.getElementById('saveReturnBtn').addEventListener('click', async () => {
   const id               = document.getElementById('returnBorrowId').value
   const actual_return_date = document.getElementById('actualReturnDate').value
@@ -134,6 +140,7 @@ document.getElementById('saveReturnBtn').addEventListener('click', async () => {
   }
 })
 
+// สลับ tab ระหว่าง "ทั้งหมด" และ "ยังไม่คืน"
 function switchTab(tab) {
   currentTab = tab
   document.getElementById('tabAll').classList.toggle('active', tab === 'all')
@@ -146,6 +153,7 @@ document.getElementById('tabPending').addEventListener('click', () => switchTab(
 
 document.getElementById('addBorrowBtn')?.addEventListener('click', openBorrowModal)
 
+// delay 400ms
 let searchTimer
 document.getElementById('searchInput').addEventListener('input', () => {
   clearTimeout(searchTimer)

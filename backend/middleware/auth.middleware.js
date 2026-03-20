@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = process.env.JWT_SECRET || 'khrupphand_secret_key_2024'
 
-// ตรวจสอบ JWT token จาก Authorization header → แนบ req.user
+// ตรวจสอบ JWT token 
 const verifyToken = (req, res, next) => {
   try {
     const authHeader = req.headers['authorization']
@@ -22,7 +22,7 @@ const verifyToken = (req, res, next) => {
   }
 }
 
-// จำกัดเฉพาะ admin เท่านั้น (ใช้ต่อจาก verifyToken)
+// จำกัดเฉพาะ admin 
 const isAdmin = (req, res, next) => {
   try {
     if (!req.user || req.user.role !== 'admin') {

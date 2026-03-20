@@ -1,8 +1,7 @@
-// ไฟล์นี้โหลดเฉพาะ admin — จัดการ เพิ่ม/แก้ไข/ลบ ครุภัณฑ์ + upload รูปภาพ
-
 const assetModal  = new bootstrap.Modal(document.getElementById('assetModal'))
 const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'))
 
+// ล้างรูปที่เลือกไว้ใน form
 function resetImagePicker() {
   document.getElementById('assetImageFile').value = ''
   document.getElementById('assetImage').value = ''
@@ -10,11 +9,13 @@ function resetImagePicker() {
   document.getElementById('imagePreviewWrapper').classList.add('d-none')
 }
 
+// แสดงตัวอย่างรูปก่อน upload
 function showImagePreview(url) {
   document.getElementById('imagePreview').src = url
   document.getElementById('imagePreviewWrapper').classList.remove('d-none')
 }
 
+// เปิด popup เพิ่มครุภัณฑ์ใหม่ (reset form ให้ว่าง)
 function openAddModal() {
   document.getElementById('modalTitle').innerHTML   = '<i class="bi bi-plus-circle me-2"></i>เพิ่มครุภัณฑ์'
   document.getElementById('assetId').value          = ''
@@ -24,6 +25,7 @@ function openAddModal() {
   assetModal.show()
 }
 
+// เปิด popup แก้ไข พร้อมดึงข้อมูลเดิมจาก allAssets มาใส่ฟอร์ม
 function openEditModal(id) {
   const a = allAssets.find(a => a.id === id)
   if (!a) return
@@ -50,12 +52,14 @@ function openEditModal(id) {
   assetModal.show()
 }
 
+// เปิด popup ยืนยันการลบ
 function openDeleteModal(id, name) {
   currentDeleteId = id
   document.getElementById('deleteAssetName').textContent = name
   deleteModal.show()
 }
 
+// บันทึกเพิ่ม/แก้ไขครุภัณฑ์ — ถ้ามีรูปให้ upload ก่อนแล้วค่อย save
 document.getElementById('saveAssetBtn').addEventListener('click', async () => {
   const name     = document.getElementById('assetName').value.trim()
   const category = document.getElementById('assetCategory').value.trim()
@@ -101,6 +105,7 @@ document.getElementById('saveAssetBtn').addEventListener('click', async () => {
   }
 })
 
+// ยืนยันลบครุภัณฑ์ → DELETE /api/assets/:id
 document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
   try {
     await axios.delete(`${BASE_URL}/assets/${currentDeleteId}`)
@@ -115,6 +120,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
 
 document.getElementById('addAssetBtn')?.addEventListener('click', openAddModal)
 
+// แสดง preview รูปทันทีที่เลือกไฟล์
 document.getElementById('assetImageFile').addEventListener('change', (e) => {
   const file = e.target.files[0]
   if (!file) return

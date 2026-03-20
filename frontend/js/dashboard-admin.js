@@ -10,6 +10,7 @@ window.onload = () => {
   }
 }
 
+// โหลดสถิติรวม + รายการยืมปัจจุบัน 
 async function loadAdminDashboard() {
   try {
     const [{ data }, { data: pendingList }] = await Promise.all([

@@ -1,5 +1,6 @@
 const BASE_URL = 'http://localhost:3001/api'
 
+// ตรวจ token 
 function initPage({ adminOnly = false } = {}) {
   const token = localStorage.getItem('token')
   const user  = JSON.parse(localStorage.getItem('user') || '{}')
@@ -27,6 +28,7 @@ function initPage({ adminOnly = false } = {}) {
   return user
 }
 
+// แสดง alert 
 function showMessage(id, msg, type = 'danger') {
   const el = document.getElementById(id)
   if (el) el.innerHTML = `
@@ -36,6 +38,7 @@ function showMessage(id, msg, type = 'danger') {
     </div>`
 }
 
+// แปลงวันที่
 function formatDate(dateStr) {
   if (!dateStr) return '-'
   return new Date(dateStr).toLocaleDateString('th-TH', {
@@ -54,6 +57,7 @@ function statusBadge(status) {
   return `<span class="badge ${map[status] || 'bg-secondary'}">${status}</span>`
 }
 
+// จัดการ error 
 function handleApiError(err, msgId = 'message') {
   if (err.response?.status === 401) {
     localStorage.clear()
@@ -66,17 +70,17 @@ function handleApiError(err, msgId = 'message') {
   showMessage(msgId, msg + detail)
 }
 
-// วันที่วันนี้ในรูปแบบ YYYY-MM-DD (ใช้กับ input[type=date] และเปรียบเทียบวันที่)
+
 function todayISO() {
   return new Date().toISOString().substring(0, 10)
 }
 
-// กรองรายการของตัวเอง (Number() ป้องกัน "1" !== 1)
+
 function filterMyRecords(records, userId) {
   return records.filter(r => Number(r.user_id) === Number(userId))
 }
 
-// กรองครุภัณฑ์ที่พร้อมให้ยืม
+
 function getAvailableAssets(assets) {
   return assets.filter(a =>
     a.active_borrows < (a.quantity || 1) &&

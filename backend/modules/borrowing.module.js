@@ -1,6 +1,6 @@
 const { getPool } = require('../database')
 
-// LEFT JOIN users เพราะ user อาจถูกลบไปแล้ว (user_id = NULL ได้)
+
 const BORROW_SELECT = `
   SELECT b.*, a.asset_code, a.asset_name, a.category, a.location,
          u.firstname, u.lastname, u.username
@@ -91,7 +91,7 @@ async function returnAsset(id, { actual_return_date, notes } = {}) {
 
   const returnDate = actual_return_date || new Date().toISOString().substring(0, 10)
 
-  // COALESCE(?, notes) = ถ้าส่ง notes มา → ใช้ใหม่, ถ้าไม่ส่ง → ใช้เดิม
+  
   await pool.query(
     `UPDATE borrowing SET status = 'returned', actual_return_date = ?, notes = COALESCE(?, notes) WHERE id = ?`,
     [returnDate, notes || null, id]

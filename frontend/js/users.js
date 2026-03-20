@@ -1,8 +1,10 @@
+// users.js — จัดการผู้ใช้ (admin เท่านั้น) 
 const user = initPage({ adminOnly: true })
 
 const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'))
 let currentDeleteId = null
 
+// โหลดและแสดงตารางผู้ใช้ทั้งหมด 
 async function loadUsers() {
   try {
     const { data } = await axios.get(`${BASE_URL}/auth/users`)
@@ -38,12 +40,14 @@ async function loadUsers() {
   }
 }
 
+// เปิด popup ยืนยันการลบ
 function openDeleteModal(id, username) {
   currentDeleteId = id
   document.getElementById('deleteUsername').textContent = username
   deleteModal.show()
 }
 
+// ยืนยันลบผู้ใช้ → DELETE 
 document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
   try {
     await axios.delete(`${BASE_URL}/auth/users/${currentDeleteId}`)

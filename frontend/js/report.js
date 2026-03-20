@@ -1,18 +1,21 @@
+// report.js — รายงานประจำปี 
 const user = initPage()
 
 let allAssets = []
 
+// สร้าง dropdown ปี พ.ศ. ตั้งแต่ปีปัจจุบันย้อนหลังถึง 2015
 function initYearSelect() {
   const sel      = document.getElementById('yearSelect')
   const thisYear = new Date().getFullYear()
   for (let y = thisYear; y >= 2015; y--) {
     const opt      = document.createElement('option')
     opt.value      = y
-    opt.textContent = `พ.ศ. ${y + 543}`  // แปลง ค.ศ. → พ.ศ.
+    opt.textContent = `พ.ศ. ${y + 543}`
     sel.appendChild(opt)
   }
 }
 
+// โหลดหมวดหมู่ใส่ dropdown filter
 async function loadCategories() {
   try {
     const { data } = await axios.get(`${BASE_URL}/assets/categories`)
@@ -25,6 +28,7 @@ async function loadCategories() {
   } catch (err) { /* ไม่แสดง error ถ้าโหลดหมวดหมู่ไม่ได้ */ }
 }
 
+// โหลดและแสดงรายงาน — กรองปีที่ฝั่ง frontend + คำนวณมูลค่ารวม
 async function loadReport() {
   const year     = document.getElementById('yearSelect').value
   const category = document.getElementById('categoryFilter').value
@@ -43,7 +47,7 @@ async function loadReport() {
 
     const { data } = await axios.get(`${BASE_URL}/assets`, { params })
 
-    // กรองตามปีที่จัดซื้อ
+    // กรองตามปีที่จัดซื้อที่ฝั่ง frontend
     allAssets = data.filter(a =>
       !year || (a.purchase_date && new Date(a.purchase_date).getFullYear() === parseInt(year))
     )
@@ -85,6 +89,7 @@ async function loadReport() {
   }
 }
 
+// ล้าง filter แล้วโหลดรายงานใหม่
 function clearFilter() {
   document.getElementById('categoryFilter').value = ''
   document.getElementById('statusFilter').value   = ''

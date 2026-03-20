@@ -1,3 +1,4 @@
+// register.js — เพิ่มผู้ใช้ใหม่ (admin เท่านั้น) 
 const token = localStorage.getItem('token')
 const user  = JSON.parse(localStorage.getItem('user') || '{}')
 

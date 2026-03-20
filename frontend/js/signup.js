@@ -1,3 +1,4 @@
+// signup.js — หน้าสมัครสมาชิก 
 if (localStorage.getItem('token')) window.location.href = 'dashboard.html'
 
 document.getElementById('signupForm').addEventListener('submit', async (e) => {

@@ -1,3 +1,4 @@
+// assets.js — หน้าครุภัณฑ์ (ทุก role) | ดู/ยืม/คืน | admin เพิ่ม/แก้ไข/ลบผ่าน assets-admin.js
 const user = initPage()
 
 const borrowModal = new bootstrap.Modal(document.getElementById('borrowModal'))
@@ -6,17 +7,20 @@ const returnModal = new bootstrap.Modal(document.getElementById('returnModal'))
 let currentDeleteId = null
 let allAssets       = []
 
+// ตรวจว่ายืมได้ไหม — มีของเหลือ และสถานะไม่ใช่ชำรุด/สูญหาย/จำหน่าย
 function canBorrow(a) {
   const unavailable = ['ชำรุด', 'สูญหาย', 'จำหน่าย']
   return parseInt(a.active_borrows) < (a.quantity || 1) && !unavailable.includes(a.status)
 }
 
+// ตรวจว่าคืนได้ไหม — admin คืนได้ทุกรายการ / user คืนได้เฉพาะของตัวเอง
 function canReturn(a) {
   if (parseInt(a.active_borrows) === 0) return false
   if (user.role === 'admin') return true
   return (a.borrow_user_ids || '').split(',').includes(String(user.id))
 }
 
+// โหลดและแสดงการ์ดครุภัณฑ์ทั้งหมด พร้อม filter
 async function loadAssets() {
   const params = {
     search:   document.getElementById('searchInput').value.trim() || undefined,
@@ -64,6 +68,7 @@ async function loadAssets() {
   }
 }
 
+// เปิด popup รายละเอียดครุภัณฑ์
 function openDetailModal(id) {
   const a = allAssets.find(a => a.id === id)
   if (!a) return
@@ -87,6 +92,7 @@ function openDetailModal(id) {
   new bootstrap.Modal(document.getElementById('detailModal')).show()
 }
 
+// หา record ที่ยืมอยู่ของครุภัณฑ์นี้ → เปิด popup คืน
 async function openReturnByAsset(assetId) {
   try {
     const { data } = await axios.get(`${BASE_URL}/borrowing`)
@@ -111,6 +117,7 @@ async function openReturnByAsset(assetId) {
   }
 }
 
+// เปิด popup ยืม พร้อมโหลดรายการครุภัณฑ์ที่ยืมได้
 async function openBorrowModal(assetId = null) {
   document.getElementById('borrowDate').value             = todayISO()
   document.getElementById('borrowerName').value           = ''
@@ -129,6 +136,7 @@ async function openBorrowModal(assetId = null) {
   borrowModal.show()
 }
 
+// บันทึกการยืม → POST /api/borrowing
 document.getElementById('saveBorrowBtn').addEventListener('click', async () => {
   const asset_id             = document.getElementById('borrowAssetId').value
   const borrower_name        = document.getElementById('borrowerName').value.trim()
@@ -153,6 +161,7 @@ document.getElementById('saveBorrowBtn').addEventListener('click', async () => {
   }
 })
 
+// บันทึกการคืน → PUT /api/borrowing/:id/return
 document.getElementById('saveReturnBtn').addEventListener('click', async () => {
   const id               = document.getElementById('returnBorrowId').value
   const actual_return_date = document.getElementById('actualReturnDate').value
@@ -184,12 +193,14 @@ document.getElementById('clearFilterBtn').addEventListener('click', () => {
   loadAssets()
 })
 
+// ค้นหาแบบ delay 400ms เพื่อไม่ให้ยิง API ทุกการกดคีย์
 let searchTimer
 document.getElementById('searchInput').addEventListener('input', () => {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(loadAssets, 400)
 })
 
+// โหลดหมวดหมู่ใส่ dropdown filter
 async function loadCategories() {
   const { data } = await axios.get(`${BASE_URL}/assets/categories`)
   document.getElementById('categoryList').innerHTML = data.map(c => `<option value="${c}">`).join('')

@@ -1,3 +1,4 @@
+// login.js — หน้าเข้าสู่ระบบ 
 if (localStorage.getItem('token')) window.location.href = 'dashboard.html'
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {

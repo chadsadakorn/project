@@ -50,7 +50,7 @@ async function getAll({ search, category, status } = {}) {
   const pool = getPool()
 
   // active_borrows = จำนวนที่ยืมอยู่ตอนนี้
-  // borrow_user_ids = รายชื่อ user_id ที่ยืมอยู่ (สำหรับตรวจสิทธิ์คืน)
+  
   let query = `
     SELECT a.*,
       (SELECT COUNT(*) FROM borrowing WHERE asset_id = a.id AND status = 'borrowed') AS active_borrows,

@@ -28,7 +28,7 @@ async function loadCategories() {
   } catch (err) { /* ไม่แสดง error ถ้าโหลดหมวดหมู่ไม่ได้ */ }
 }
 
-// โหลดและแสดงรายงาน — กรองปีที่ฝั่ง frontend + คำนวณมูลค่ารวม
+// โหลดและแสดงรายงาน 
 async function loadReport() {
   const year     = document.getElementById('yearSelect').value
   const category = document.getElementById('categoryFilter').value
@@ -47,12 +47,12 @@ async function loadReport() {
 
     const { data } = await axios.get(`${BASE_URL}/assets`, { params })
 
-    // กรองตามปีที่จัดซื้อที่ฝั่ง frontend
+    
     allAssets = data.filter(a =>
       !year || (a.purchase_date && new Date(a.purchase_date).getFullYear() === parseInt(year))
     )
 
-    // นับตาม quantity ไม่ใช่จำนวน record
+    // นับตาม quantity 
     const sumQty = (arr) => arr.reduce((s, a) => s + (a.quantity || 1), 0)
 
     document.getElementById('statTotal').textContent   = sumQty(allAssets)
@@ -61,7 +61,7 @@ async function loadReport() {
     document.getElementById('statLost').textContent    = sumQty(allAssets.filter(a => a.status === 'สูญหาย' || a.status === 'จำหน่าย'))
     document.getElementById('recordCount').textContent = `${allAssets.length} รายการ`
 
-    // มูลค่ารวม = Σ (ราคา × จำนวน)
+    // มูลค่ารวม
     const totalPrice    = allAssets.reduce((sum, a) => sum + ((parseFloat(a.price) || 0) * (a.quantity || 1)), 0)
     const totalPriceStr = totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })
     document.getElementById('statTotalPrice').textContent  = totalPriceStr

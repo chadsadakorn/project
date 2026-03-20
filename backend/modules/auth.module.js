@@ -31,11 +31,8 @@ async function register({ username, password, firstname, lastname, role }) {
     [username.trim(), hashedPassword, firstname.trim(), lastname.trim(), userRole]
   )
 
-  const [rows] = await pool.query(
-    'SELECT id, username, firstname, lastname, role, created_at FROM users WHERE id = ?',
-    [result.insertId]
-  )
-  return rows[0]
+  // คืน object ตรงๆ ไม่ต้อง SELECT ซ้ำ
+  return { id: result.insertId, username: username.trim(), firstname: firstname.trim(), lastname: lastname.trim(), role: userRole }
 }
 
 async function login({ username, password }) {

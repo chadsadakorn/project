@@ -35,12 +35,8 @@ async function getAll({ status, search } = {}) {
   return rows
 }
 
-async function getPending() {
-  const pool = getPool()
-  const [rows] = await pool.query(
-    BORROW_SELECT + `WHERE b.status = 'borrowed' ORDER BY b.expected_return_date ASC`
-  )
-  return rows
+function getPending() {
+  return getAll({ status: 'borrowed' })
 }
 
 async function create({ asset_id, user_id, borrower_name, borrow_date, expected_return_date, notes }) {
@@ -106,12 +102,9 @@ async function returnAsset(id, { actual_return_date, notes } = {}) {
     [record.asset_id]
   )
 
-  // ถ้าไม่มีการยืมเหลือ → ปกติ | ถ้ายังมีแต่ไม่เต็ม → เปลี่ยนจาก 'ยืม' กลับเป็น 'ปกติ'
-  if (remainingCount === 0) {
-    await pool.query(`UPDATE assets SET status = 'ปกติ' WHERE id = ?`, [record.asset_id])
-  } else {
-    await pool.query(`UPDATE assets SET status = 'ปกติ' WHERE id = ? AND status = 'ยืม'`, [record.asset_id])
-  }
+  // remainingCount=0 → คืนหมดแล้ว ตั้งเป็นปกติเลย | ยังมีอยู่ → ตั้งปกติเฉพาะถ้าเคยถูก mark ว่า 'ยืม'
+  const extraCondition = remainingCount === 0 ? '' : "AND status = 'ยืม'"
+  await pool.query(`UPDATE assets SET status = 'ปกติ' WHERE id = ? ${extraCondition}`, [record.asset_id])
 
   const [rows] = await pool.query(BORROW_SELECT + 'WHERE b.id = ?', [id])
   return rows[0]
@@ -144,48 +137,46 @@ async function getAnnualReport(year) {
   const pool  = getPool()
   const today = new Date().toISOString().substring(0, 10)
 
-  const [[summary]] = await pool.query(
-    `SELECT
-      COUNT(*)                                              AS total,
-      SUM(status = 'returned')                             AS returned,
-      SUM(status = 'borrowed')                             AS pending,
-      SUM(status = 'borrowed' AND expected_return_date < ?) AS overdue
-     FROM borrowing WHERE YEAR(borrow_date) = ?`,
-    [today, year]
-  )
-
-  const [monthly] = await pool.query(
-    `SELECT MONTH(borrow_date) AS month, COUNT(*) AS total,
-            SUM(status = 'returned') AS returned,
-            SUM(status = 'borrowed') AS pending
-     FROM borrowing WHERE YEAR(borrow_date) = ?
-     GROUP BY MONTH(borrow_date) ORDER BY month`,
-    [year]
-  )
-
-  const [topAssets] = await pool.query(
-    `SELECT a.asset_code, a.asset_name, a.category, COUNT(*) AS borrow_count
-     FROM borrowing b JOIN assets a ON b.asset_id = a.id
-     WHERE YEAR(b.borrow_date) = ?
-     GROUP BY b.asset_id ORDER BY borrow_count DESC LIMIT 5`,
-    [year]
-  )
-
-  const [byCategory] = await pool.query(
-    `SELECT a.category, COUNT(*) AS count
-     FROM borrowing b JOIN assets a ON b.asset_id = a.id
-     WHERE YEAR(b.borrow_date) = ?
-     GROUP BY a.category ORDER BY count DESC`,
-    [year]
-  )
-
-  const [[{ newAssets }]] = await pool.query(
-    `SELECT COUNT(*) AS newAssets FROM assets WHERE YEAR(created_at) = ?`, [year]
-  )
-
-  const [records] = await pool.query(
-    BORROW_SELECT + `WHERE YEAR(b.borrow_date) = ? ORDER BY b.borrow_date ASC`, [year]
-  )
+  // ยิง 6 query พร้อมกัน
+  const [
+    [[summary]],
+    [monthly],
+    [topAssets],
+    [byCategory],
+    [[{ newAssets }]],
+    [records],
+  ] = await Promise.all([
+    pool.query(
+      `SELECT COUNT(*) AS total, SUM(status = 'returned') AS returned,
+              SUM(status = 'borrowed') AS pending,
+              SUM(status = 'borrowed' AND expected_return_date < ?) AS overdue
+       FROM borrowing WHERE YEAR(borrow_date) = ?`,
+      [today, year]
+    ),
+    pool.query(
+      `SELECT MONTH(borrow_date) AS month, COUNT(*) AS total,
+              SUM(status = 'returned') AS returned, SUM(status = 'borrowed') AS pending
+       FROM borrowing WHERE YEAR(borrow_date) = ?
+       GROUP BY MONTH(borrow_date) ORDER BY month`,
+      [year]
+    ),
+    pool.query(
+      `SELECT a.asset_code, a.asset_name, a.category, COUNT(*) AS borrow_count
+       FROM borrowing b JOIN assets a ON b.asset_id = a.id
+       WHERE YEAR(b.borrow_date) = ?
+       GROUP BY b.asset_id ORDER BY borrow_count DESC LIMIT 5`,
+      [year]
+    ),
+    pool.query(
+      `SELECT a.category, COUNT(*) AS count
+       FROM borrowing b JOIN assets a ON b.asset_id = a.id
+       WHERE YEAR(b.borrow_date) = ?
+       GROUP BY a.category ORDER BY count DESC`,
+      [year]
+    ),
+    pool.query(`SELECT COUNT(*) AS newAssets FROM assets WHERE YEAR(created_at) = ?`, [year]),
+    pool.query(BORROW_SELECT + `WHERE YEAR(b.borrow_date) = ? ORDER BY b.borrow_date ASC`, [year]),
+  ])
 
   return { year, summary, monthly, topAssets, byCategory, newAssets, records }
 }

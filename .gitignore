@@ -1,24 +1,4 @@
-# Dependencies
 node_modules/
-
-# Environment variables (contains secrets)
-.env
-.env.*
-!.env.example
-
-# Database files
-*.db
-*.sqlite
-
-# Uploads (generated files)
-backend/uploads/
-
-# OS / editor
-.DS_Store
-Thumbs.db
-.vscode/
-*.swp
-
-# Logs
-*.log
-npm-debug.log*
+backend/.env
+backend/khrupphand.db
+uploads/

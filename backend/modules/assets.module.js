@@ -113,22 +113,25 @@ async function update(id, data) {
   const existing = await getOne(id)
   if (!existing) throw { statusCode: 404, message: 'ไม่พบครุภัณฑ์', errors: [] }
 
+  // pick: ถ้าส่งค่ามา → ใช้ค่าใหม่ / ถ้าไม่ส่ง (undefined) → ใช้ค่าเดิม
+  const pick = (newVal, oldVal) => newVal !== undefined ? newVal : oldVal
+
   await pool.query(
     `UPDATE assets SET
       asset_name = ?, category = ?, price = ?, quantity = ?, purchase_date = ?,
       location = ?, responsible_person = ?, status = ?, notes = ?, image_url = ?
      WHERE id = ?`,
     [
-      data.asset_name         || existing.asset_name,
-      data.category           || existing.category,
-      data.price              !== undefined ? data.price              : existing.price,
-      data.quantity           !== undefined ? data.quantity           : existing.quantity,
-      data.purchase_date      !== undefined ? data.purchase_date      : existing.purchase_date,
-      data.location           !== undefined ? data.location           : existing.location,
-      data.responsible_person !== undefined ? data.responsible_person : existing.responsible_person,
-      data.status             || existing.status,
-      data.notes              !== undefined ? data.notes              : existing.notes,
-      data.image_url          !== undefined ? data.image_url          : existing.image_url,
+      data.asset_name || existing.asset_name,
+      data.category   || existing.category,
+      pick(data.price,              existing.price),
+      pick(data.quantity,           existing.quantity),
+      pick(data.purchase_date,      existing.purchase_date),
+      pick(data.location,           existing.location),
+      pick(data.responsible_person, existing.responsible_person),
+      data.status || existing.status,
+      pick(data.notes,              existing.notes),
+      pick(data.image_url,          existing.image_url),
       id,
     ]
   )

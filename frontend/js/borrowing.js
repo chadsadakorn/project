@@ -134,19 +134,15 @@ document.getElementById('saveReturnBtn').addEventListener('click', async () => {
   }
 })
 
-document.getElementById('tabAll').addEventListener('click', () => {
-  currentTab = 'all'
-  document.getElementById('tabAll').classList.add('active')
-  document.getElementById('tabPending').classList.remove('active')
+function switchTab(tab) {
+  currentTab = tab
+  document.getElementById('tabAll').classList.toggle('active', tab === 'all')
+  document.getElementById('tabPending').classList.toggle('active', tab === 'pending')
   loadBorrowing()
-})
+}
 
-document.getElementById('tabPending').addEventListener('click', () => {
-  currentTab = 'pending'
-  document.getElementById('tabPending').classList.add('active')
-  document.getElementById('tabAll').classList.remove('active')
-  loadBorrowing()
-})
+document.getElementById('tabAll').addEventListener('click', () => switchTab('all'))
+document.getElementById('tabPending').addEventListener('click', () => switchTab('pending'))
 
 document.getElementById('addBorrowBtn')?.addEventListener('click', openBorrowModal)
 
